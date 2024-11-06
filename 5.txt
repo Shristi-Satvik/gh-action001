@@ -1,6 +1,12 @@
 Main direct
 "k1":"local1"
+"k1":"remote1"
 "k2":"local2"
+"k2":"remote2"
 "k3":"local3"
+"k3":"remote3"
 "k4":"local4"
+"k4":"remote4"
+
+
 
