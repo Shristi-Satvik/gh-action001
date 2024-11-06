@@ -1,3 +1,8 @@
 Hello All
 line 2
+<<<<<<< HEAD
 file changes local
+=======
+file change
+filec hange 2
+>>>>>>> 3e6ad9a0b574871e8d7fe3bbc8ecabb4cf6ca023
