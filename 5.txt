@@ -1,1 +1,7 @@
 Main direct
+"k1":"remote1"
+"k2":"remote2"
+"k3":"remote3"
+"k4":"remote4"
+
+
