@@ -1,1 +1,2 @@
-new local: value
+new local: value1
+new remote 2: value 2
