@@ -1,6 +1,0 @@
-Hello All
-line 2 changed
-line 2 rem
-file change
-filec hange 2
-local
