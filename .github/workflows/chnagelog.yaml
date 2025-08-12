@@ -1,0 +1,53 @@
+name: Update Changelog
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Needed to get all tags
+
+      - name: Get previous tag
+        id: prev
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^)
+          echo "prev=$PREV_TAG" >> $GITHUB_OUTPUT
+
+      - name: Get current tag
+        id: curr
+        run: |
+          CURR_TAG=${GITHUB_REF#refs/tags/}
+          echo "curr=$CURR_TAG" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        run: |
+          echo "## ${{ steps.curr.outputs.curr }} ($(date +'%Y-%m-%d'))" > new_changelog.md
+          echo "" >> new_changelog.md
+          git log ${{ steps.prev.outputs.prev }}..${{ steps.curr.outputs.curr }} --pretty=format:"* %s (%h) <%an>" >> new_changelog.md
+          echo "" >> new_changelog.md
+
+          if [ -f CHANGELOG.md ]; then
+            cat new_changelog.md CHANGELOG.md > CHANGELOG.tmp && mv CHANGELOG.tmp CHANGELOG.md
+          else
+            mv new_changelog.md CHANGELOG.md
+          fi
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore: update changelog for ${{ steps.curr.outputs.curr }}"
+          branch: changelog/${{ steps.curr.outputs.curr }}
+          title: "Update changelog for ${{ steps.curr.outputs.curr }}"
+          body: "This PR updates the changelog for ${{ steps.curr.outputs.curr }}."
+          labels: documentation
