@@ -1,0 +1,65 @@
+name: Update Changelog and PR
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get previous tag
+        id: prev
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^)
+          echo "prev=$PREV_TAG" >> $GITHUB_OUTPUT
+
+      - name: Get current tag
+        id: curr
+        run: |
+          CURR_TAG=${GITHUB_REF#refs/tags/}
+          echo "curr=$CURR_TAG" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        run: |
+          echo "## ${{ steps.curr.outputs.curr }} ($(date +'%Y-%m-%d'))" > new_changelog.md
+          git log ${{ steps.prev.outputs.prev }}..${{ steps.curr.outputs.curr }} \
+            --pretty=format:"* %s (%h) <%an>" >> new_changelog.md
+          echo "" >> new_changelog.md
+
+          if [ -f CHANGELOG.md ]; then
+            cat new_changelog.md CHANGELOG.md > CHANGELOG.tmp && mv CHANGELOG.tmp CHANGELOG.md
+          else
+            mv new_changelog.md CHANGELOG.md
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b changelog/${{ steps.curr.outputs.curr }}
+          git add CHANGELOG.md
+          git commit -m "chore: update changelog for ${{ steps.curr.outputs.curr }}"
+          git push origin changelog/${{ steps.curr.outputs.curr }}
+
+      - name: Create Pull Request
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Update changelog for ${{ steps.curr.outputs.curr }}`,
+              head: `changelog/${{ steps.curr.outputs.curr }}`,
+              base: 'main',
+              body: 'This PR updates the changelog automatically.'
+            });
+            core.info(`Created PR: ${pr.data.html_url}`);
