@@ -1,27 +1,14 @@
-name: Pre-commit Checks
+name: pre-commit
 
 on:
-  push:
-    branches: [main]
   pull_request:
+  push:
     branches: [main]
 
 jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.8"
-
-      - name: Install pre-commit
-        run: pip install pre-commit
-
-      - name: Run pre-commit on all files
-        uses: pre-commit/action@v3.0.0
-        with:
-          extra_args: flake8 --all-files
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v3
+    - uses: pre-commit/action@v3.0.1
